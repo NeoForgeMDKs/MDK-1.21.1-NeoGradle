@@ -1,0 +1,18 @@
+{
+	"textures": {
+		"0": "examplemod:block/furnace_wall_bot_left",
+		"1": "examplemod:block/furnace_wall_top_right",
+		"particle": "examplemod:block/furnace_wall_bot_left"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"down": {"uv": [0, 0, 16, 16], "rotation": 90, "texture": "#1"}
+			}
+		}
+	]
+}
