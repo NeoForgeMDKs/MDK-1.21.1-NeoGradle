@@ -1,4 +1,6 @@
 {
+	"format_version": "1.21.11",
+	"credit": "Made with Blockbench",
 	"textures": {
 		"0": "examplemod:block/furnace_wall_top_right",
 		"particle": "examplemod:block/furnace_wall_top_right"
