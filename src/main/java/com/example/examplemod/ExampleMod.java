@@ -6,11 +6,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -24,33 +25,32 @@ public class ExampleMod {
     public static final String MODID = "examplemod";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    // ==================== РЕГИСТРАТОРЫ ====================
+    // Регистраторы
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-    // ==================== БЛОКИ ====================
-    public static final DeferredBlock<ModularFurnacePartBlock> MODULAR_FURNACE_PART = BLOCKS.register(
-            "modular_furnace_part",
-            () -> new ModularFurnacePartBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK))
-    );
-
+    // Блок улучшенной печи (из него строится весь мультиблок)
     public static final DeferredBlock<UpgradedFurnaceBlock> UPGRADED_FURNACE = BLOCKS.register(
             "upgraded_furnace",
-            () -> new UpgradedFurnaceBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.FURNACE))
+            () -> new UpgradedFurnaceBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.STONE)
+                    .instrument(NoteBlockInstrument.BASEDRUM)
+                    .requiresCorrectToolForDrops()
+                    .strength(3.5F))
     );
 
-    // ==================== BLOCK ENTITY ====================
+    // Block Entity
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<UpgradedFurnaceEntity>> UPGRADED_FURNACE_BE =
             BLOCK_ENTITIES.register("upgraded_furnace_be",
                     () -> BlockEntityType.Builder.of(UpgradedFurnaceEntity::new, UPGRADED_FURNACE.get()).build(null)
             );
 
-    // ==================== ПРЕДМЕТЫ ====================
+    // Предмет блока для инвентаря
     public static final DeferredItem<BlockItem> UPGRADED_FURNACE_ITEM = ITEMS.registerSimpleBlockItem(UPGRADED_FURNACE);
 
-    // ==================== КРЕАТИВ ====================
+    // Вкладка в креативе
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MOD_TAB = CREATIVE_MODE_TABS.register("mod_tab", () ->
             CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + MODID))
@@ -60,15 +60,13 @@ public class ExampleMod {
                     .build()
     );
 
-    public ExampleMod(IEventBus modEventBus, net.neoforged.fml.ModContainer modContainer) {
+    public ExampleMod(IEventBus modEventBus, ModContainer modContainer) {
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
         CREATIVE_MODE_TABS.register(modEventBus);
 
-        // ←←← ДОБАВЬ ЭТУ СТРОКУ
         net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(ModEvents.class);
-
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 }

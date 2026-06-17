@@ -2,84 +2,78 @@ package com.example.examplemod;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
 
 public class ModularFurnaceValidator {
 
-    public static boolean tryAssemble(Level level, BlockPos furnacePos) {
-        if (level.isClientSide) return false;
+    // Ограничиваем максимальный размер печи (например, 3x3x3 = 27 блоков)
+    private static final int MAX_SIZE = 3; 
 
-        BlockState centerState = level.getBlockState(furnacePos);
-        if (!centerState.is(Blocks.FURNACE)) {
-            return false;
+    public static Set<BlockPos> findConnectedBlocks(Level level, BlockPos startPos) {
+        Set<BlockPos> connected = new HashSet<>();
+        Queue<BlockPos> queue = new LinkedList<>();
+
+        BlockState startState = level.getBlockState(startPos);
+        if (!startState.is(ExampleMod.UPGRADED_FURNACE.get())) {
+            return connected; // Возвращаем пустой сет
         }
 
-        Direction facing = centerState.getValue(net.minecraft.world.level.block.AbstractFurnaceBlock.FACING);
-        Direction left = facing.getCounterClockWise();
-        Direction back = facing.getOpposite();
+        queue.add(startPos);
+        connected.add(startPos);
 
-        // Центр = furnacePos
-        BlockPos startLoc = furnacePos.below().relative(left, 1).relative(back, 1);
+        // 1. Собираем все соединенные блоки нашей печи (Flood fill)
+        while (!queue.isEmpty()) {
+            BlockPos current = queue.poll();
+            
+            // Если блоков больше 27, прерываем поиск — структура слишком большая
+            if (connected.size() > MAX_SIZE * MAX_SIZE * MAX_SIZE) return new HashSet<>();
 
-        // === ПРОВЕРКА ===
-        boolean structureOk = true;
-        for (int y = 0; y < 3; y++) {
-            for (int x = 0; x < 3; x++) {
-                for (int z = 0; z < 3; z++) {
-                    BlockPos checkPos = startLoc.above(y)
-                            .relative(left.getOpposite(), x)
-                            .relative(facing, z);
-
-                    if (checkPos.equals(furnacePos)) continue;
-
-                    if (!level.getBlockState(checkPos).is(Blocks.CLAY)) {
-                        structureOk = false;
+            for (Direction direction : Direction.values()) {
+                BlockPos neighbor = current.relative(direction);
+                if (!connected.contains(neighbor)) {
+                    BlockState neighborState = level.getBlockState(neighbor);
+                    if (neighborState.is(ExampleMod.UPGRADED_FURNACE.get())) {
+                        connected.add(neighbor);
+                        queue.add(neighbor);
                     }
                 }
             }
         }
 
-        if (!structureOk) {
-            return false;
+        // 2. Проверяем, образуют ли найденные блоки ИДЕАЛЬНЫЙ куб/параллелепипед
+        int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+
+        for (BlockPos pos : connected) {
+            minX = Math.min(minX, pos.getX());
+            minY = Math.min(minY, pos.getY());
+            minZ = Math.min(minZ, pos.getZ());
+            maxX = Math.max(maxX, pos.getX());
+            maxY = Math.max(maxY, pos.getY());
+            maxZ = Math.max(maxZ, pos.getZ());
         }
 
-        // === СБОРКА ===
-        // Заменяем печь
-        BlockState upgradedState = ExampleMod.UPGRADED_FURNACE.get().defaultBlockState()
-                .setValue(net.minecraft.world.level.block.AbstractFurnaceBlock.FACING, facing);
+        int widthX = maxX - minX + 1;
+        int height = maxY - minY + 1;
+        int widthZ = maxZ - minZ + 1;
 
-        level.setBlock(furnacePos, upgradedState, 3);
-
-        BlockEntity be = level.getBlockEntity(furnacePos);
-        if (be instanceof UpgradedFurnaceEntity entity) {
-            entity.initStructure(facing);
+        // Если размеры превышают лимит (например, 4x3x3), отменяем сборку
+        if (widthX > MAX_SIZE || height > MAX_SIZE || widthZ > MAX_SIZE) {
+            return new HashSet<>();
         }
 
-        // Ставим части
-        for (int y = 0; y < 3; y++) {
-            for (int x = 0; x < 3; x++) {
-                for (int z = 0; z < 3; z++) {
-                    BlockPos placePos = startLoc.above(y)
-                            .relative(left.getOpposite(), x)
-                            .relative(facing, z);
-
-                    if (placePos.equals(furnacePos)) continue;
-
-                    BlockState partState = ExampleMod.MODULAR_FURNACE_PART.get().defaultBlockState()
-                            .setValue(ModularFurnacePartBlock.FACING, facing)
-                            .setValue(ModularFurnacePartBlock.PART_X, x)
-                            .setValue(ModularFurnacePartBlock.PART_Y, y)
-                            .setValue(ModularFurnacePartBlock.PART_Z, z);
-
-                    level.setBlock(placePos, partState, 3);
-                }
-            }
+        // Проверяем, что куб сплошной (объем куба равен количеству найденных блоков)
+        int expectedVolume = widthX * height * widthZ;
+        if (connected.size() != expectedVolume) {
+            return new HashSet<>(); // Есть дыры или торчащие лишние блоки
         }
 
-        return true;
+        return connected; // Всё идеально! Возвращаем сет для сборки
     }
 }

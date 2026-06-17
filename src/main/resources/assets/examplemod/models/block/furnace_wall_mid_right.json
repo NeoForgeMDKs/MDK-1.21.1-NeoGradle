@@ -1,6 +1,7 @@
 {
 	"textures": {
-		"0": "examplemod:block/furnace_wall_mid_right",
+		"front": "examplemod:block/furnace_wall_mid_right",
+		"casing": "examplemod:block/furnace_wall_mid_center",
 		"particle": "examplemod:block/furnace_wall_mid_right"
 	},
 	"elements": [
@@ -8,8 +9,12 @@
 			"from": [0, 0, 0],
 			"to": [16, 16, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 16, 16], "texture": "#0"},
-				"west": {"uv": [16, 0, 0, 16], "texture": "#0"}
+				"north": {"uv": [0, 0, 16, 16], "texture": "#front"},
+				"west":  {"uv": [16, 0, 0, 16], "texture": "#front"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+				"east":  {"uv": [0, 0, 16, 16], "texture": "#casing"},
+				"up":    {"uv": [0, 0, 16, 16], "texture": "#casing"},
+				"down":  {"uv": [0, 0, 16, 16], "texture": "#casing"}
 			}
 		}
 	]

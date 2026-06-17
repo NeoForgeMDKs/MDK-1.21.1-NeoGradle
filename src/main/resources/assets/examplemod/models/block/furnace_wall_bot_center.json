@@ -1,8 +1,7 @@
 {
 	"textures": {
-		"0": "examplemod:block/furnace_wall_bot_center",
-		"1": "examplemod:block/furnace_wall_top_center",
-		"particle": "examplemod:block/furnace_wall_bot_center"
+		"0": "examplemod:block/furnace_wall_top_center",
+		"particle": "examplemod:block/furnace_wall_top_center"
 	},
 	"elements": [
 		{
@@ -10,7 +9,11 @@
 			"to": [16, 16, 16],
 			"faces": {
 				"north": {"uv": [0, 0, 16, 16], "texture": "#0"},
-				"down": {"uv": [0, 0, 16, 16], "texture": "#1"}
+				"south": {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"east":  {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"west":  {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"up":    {"uv": [0, 0, 16, 16], "texture": "#0"},
+				"down":  {"uv": [0, 0, 16, 16], "texture": "#0"}
 			}
 		}
 	]

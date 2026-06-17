@@ -1,0 +1,52 @@
+{
+  "multipart": [
+    {
+      "when": { "part_z": [1, 2] },
+      "apply": { "models": "examplemod:block/furnace_wall_mid_center" }
+    },
+    { "when": { "part_x": 0, "part_y": 0, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_bot_left" } },
+    { "when": { "part_x": 0, "part_y": 0, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_bot_left", "y": 180 } },
+    { "when": { "part_x": 0, "part_y": 0, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_bot_left", "y": 270 } },
+    { "when": { "part_x": 0, "part_y": 0, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_bot_left", "y": 90 } },
+
+    { "when": { "part_x": 1, "part_y": 0, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_bot_center" } },
+    { "when": { "part_x": 1, "part_y": 0, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_bot_center", "y": 180 } },
+    { "when": { "part_x": 1, "part_y": 0, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_bot_center", "y": 270 } },
+    { "when": { "part_x": 1, "part_y": 0, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_bot_center", "y": 90 } },
+
+    { "when": { "part_x": 2, "part_y": 0, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_bot_right" } },
+    { "when": { "part_x": 2, "part_y": 0, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_bot_right", "y": 180 } },
+    { "when": { "part_x": 2, "part_y": 0, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_bot_right", "y": 270 } },
+    { "when": { "part_x": 2, "part_y": 0, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_bot_right", "y": 90 } },
+
+    { "when": { "part_x": 0, "part_y": 1, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_mid_left" } },
+    { "when": { "part_x": 0, "part_y": 1, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_mid_left", "y": 180 } },
+    { "when": { "part_x": 0, "part_y": 1, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_mid_left", "y": 270 } },
+    { "when": { "part_x": 0, "part_y": 1, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_mid_left", "y": 90 } },
+
+    { "when": { "part_x": 1, "part_y": 1, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_mid_center" } },
+    { "when": { "part_x": 1, "part_y": 1, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_mid_center", "y": 180 } },
+    { "when": { "part_x": 1, "part_y": 1, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_mid_center", "y": 270 } },
+    { "when": { "part_x": 1, "part_y": 1, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_mid_center", "y": 90 } },
+
+    { "when": { "part_x": 2, "part_y": 1, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_mid_right" } },
+    { "when": { "part_x": 2, "part_y": 1, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_mid_right", "y": 180 } },
+    { "when": { "part_x": 2, "part_y": 1, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_mid_right", "y": 270 } },
+    { "when": { "part_x": 2, "part_y": 1, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_mid_right", "y": 90 } },
+
+    { "when": { "part_x": 0, "part_y": 2, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_top_left" } },
+    { "when": { "part_x": 0, "part_y": 2, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_top_left", "y": 180 } },
+    { "when": { "part_x": 0, "part_y": 2, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_top_left", "y": 270 } },
+    { "when": { "part_x": 0, "part_y": 2, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_top_left", "y": 90 } },
+
+    { "when": { "part_x": 1, "part_y": 2, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_top_center" } },
+    { "when": { "part_x": 1, "part_y": 2, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_top_center", "y": 180 } },
+    { "when": { "part_x": 1, "part_y": 2, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_top_center", "y": 270 } },
+    { "when": { "part_x": 1, "part_y": 2, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_top_center", "y": 90 } },
+
+    { "when": { "part_x": 2, "part_y": 2, "part_z": 0, "facing": "north" }, "apply": { "models": "examplemod:block/furnace_wall_top_right" } },
+    { "when": { "part_x": 2, "part_y": 2, "part_z": 0, "facing": "south" }, "apply": { "models": "examplemod:block/furnace_wall_top_right", "y": 180 } },
+    { "when": { "part_x": 2, "part_y": 2, "part_z": 0, "facing": "west" }, "apply": { "models": "examplemod:block/furnace_wall_top_right", "y": 270 } },
+    { "when": { "part_x": 2, "part_y": 2, "part_z": 0, "facing": "east" }, "apply": { "models": "examplemod:block/furnace_wall_top_right", "y": 90 } }
+  ]
+}
