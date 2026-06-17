@@ -2,7 +2,6 @@ package com.example.examplemod;
 
 import com.example.examplemod.client.ModularFurnaceBakedModel;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -14,14 +13,13 @@ public class ModularFurnaceClientEvents {
 
     @SubscribeEvent
     public static void onModelModify(ModelEvent.ModifyBakingResult event) {
-        // ВНИМАНИЕ: Проверь, чтобы "upgraded_furnace" точно совпадало с ID регистрации твоего блока!
-        ResourceLocation blockId = ResourceLocation.fromNamespaceAndPath(ExampleMod.MODID, "upgraded_furnace");
-        
-        // Для обычного блока в мире Minecraft ищет модель с определенным blockstate-контекстом
         event.getModels().keySet().forEach(location -> {
-            if (location.id().getNamespace().equals(blockId.getNamespace()) && location.id().getPath().equals(blockId.getPath())) {
+            // Меняем условие на более общее, чтобы захватить все модели из твоего списка
+            if (location.id().getNamespace().equals(ExampleMod.MODID) && 
+                location.id().getPath().contains("furnace")) { // Захватит всё, где есть слово furnace
+                
                 BakedModel original = event.getModels().get(location);
-                if (original != null) {
+                if (original != null && !(original instanceof ModularFurnaceBakedModel)) {
                     event.getModels().put(location, new ModularFurnaceBakedModel(original));
                 }
             }

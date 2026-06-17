@@ -1,9 +1,9 @@
 {
-	"format_version": "1.21.11",
+	"format_version": "1.9.0",
 	"credit": "Made with Blockbench",
 	"textures": {
-		"0": "examplemod:block/furnace_wall_top_center",
-		"particle": "examplemod:block/furnace_wall_top_center"
+		"0": "examplemod:block/furnace_wall_mid_center",
+		"particle": "examplemod:block/furnace_wall_mid_center"
 	},
 	"elements": [
 		{
@@ -15,7 +15,7 @@
 				"south": {"uv": [0, 0, 16, 16], "texture": "#0"},
 				"west": {"uv": [0, 0, 16, 16], "texture": "#0"},
 				"up": {"uv": [0, 0, 16, 16], "texture": "#0"},
-				"down": {"uv": [0, 16, 16, 0], "texture": "#0"}
+				"down": {"uv": [0, 0, 16, 16], "texture": "#0"}
 			}
 		}
 	]

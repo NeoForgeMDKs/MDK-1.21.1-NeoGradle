@@ -89,14 +89,12 @@ public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
                 localZ = (worldPosition.getZ() == maxZ) ? 0 : (worldPosition.getZ() == minZ ? 2 : 1);
                 break;
             case WEST:
-                localX = (worldPosition.getZ() == maxX) ? 0 : (worldPosition.getZ() == minX ? 2 : 1);
+                localX = (worldPosition.getZ() == maxZ) ? 0 : (worldPosition.getZ() == minX ? 2 : 1);
                 localZ = (worldPosition.getX() == minX) ? 0 : (worldPosition.getX() == maxX ? 2 : 1);
                 break;
             case EAST:
-                localX = (worldPosition.getZ() == minX) ? 0 : (worldPosition.getZ() == maxX ? 2 : 1);
+                localX = (worldPosition.getZ() == minX) ? 0 : (worldPosition.getZ() == maxZ ? 2 : 1);
                 localZ = (worldPosition.getX() == maxX) ? 0 : (worldPosition.getX() == minX ? 2 : 1);
-                break;
-            default:
                 break;
         }
 
