@@ -12,10 +12,9 @@ import java.util.Set;
 
 public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
 
-    private BlockPos controllerPos; // Храним позицию главного блока мультиблока
+    private BlockPos controllerPos;
 
     public UpgradedFurnaceEntity(BlockPos pos, BlockState state) {
-        // ExampleMod.UPGRADED_FURNACE_BE должен указывать на твой DeferredRegister/DeferredHolder сущности
         super(ExampleMod.UPGRADED_FURNACE_BE.get(), pos, state, RecipeType.SMELTING);
     }
 
@@ -25,9 +24,7 @@ public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
     }
 
     @Override
-    protected AbstractContainerMenu createMenu(int id, Inventory inventory) {
-        return null; // Сюда потом привяжешь свой контейнер для GUI
-    }
+    protected AbstractContainerMenu createMenu(int id, Inventory inventory) { return null; }
 
     public UpgradedFurnaceEntity getController() {
         if (level != null && controllerPos != null && level.getBlockEntity(controllerPos) instanceof UpgradedFurnaceEntity be) {
@@ -41,14 +38,9 @@ public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
         this.setChanged();
     }
 
-    /**
-     * Основной метод обновления структуры.
-     * Расчитывает размеры, слои и передает данные в блокстейт.
-     */
     public void updateDynamicStructure(Set<BlockPos> structureBlocks, Direction mainFacing) {
         if (level == null || level.isClientSide) return;
 
-        // 1. Находим физические границы текущей построенной коробки
         int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
         int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
         int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
@@ -59,14 +51,11 @@ public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
             minZ = Math.min(minZ, p.getZ()); maxZ = Math.max(maxZ, p.getZ());
         }
 
-        // 2. Проверяем слои (работает как для 1 слоя, так и для бесконечной высоты)
         boolean isBottom = (worldPosition.getY() == minY);
         boolean isTop = (worldPosition.getY() == maxY);
 
-        // 3. Вычисляем часть мультиблока по твоей схеме моделей
         FurnacePart part = calculatePart(mainFacing, worldPosition, minX, maxX, minZ, maxZ);
 
-        // 4. Получаем старый стейт и сравниваем с новым, чтобы не спамить обновлениями пакетов
         BlockState currentState = getBlockState();
         BlockState newState = currentState
                 .setValue(UpgradedFurnaceBlock.FACING, mainFacing)
@@ -75,25 +64,17 @@ public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
                 .setValue(UpgradedFurnaceBlock.PART, part);
 
         if (currentState != newState) {
-            level.setBlock(worldPosition, newState, 3); // Флаг 3 обновляет блок и на клиенте, и на сервере
+            level.setBlock(worldPosition, newState, 3);
         }
     }
 
-    /**
-     * Математический адаптер под твою сетку моделей:
-     * Перед: [Left (2)]  [Mid (3)]  [Right (1)]
-     * Середина: [Mid (3)]  [Center]   [Mid (3)]
-     * Зад:  [Right (1)] [Mid (3)]  [Left (2)]
-     */
     private FurnacePart calculatePart(Direction facing, BlockPos pos, int minX, int maxX, int minZ, int maxZ) {
-        // Превращаем мировые координаты в относительную сетку (0 - край минимума, 2 - край максимума, 1 - между ними)
         int gridX = (pos.getX() == minX) ? 0 : (pos.getX() == maxX ? 2 : 1);
         int gridZ = (pos.getZ() == minZ) ? 0 : (pos.getZ() == maxZ ? 2 : 1);
 
         int localX = 1; 
         int localZ = 1;
 
-        // Разворачиваем координатную сетку в зависимости от взгляда печи (FACING)
         switch (facing) {
             case NORTH -> { localX = gridX; localZ = gridZ; }
             case SOUTH -> { localX = 2 - gridX; localZ = 2 - gridZ; }
@@ -101,27 +82,27 @@ public class UpgradedFurnaceEntity extends AbstractFurnaceBlockEntity {
             case EAST  -> { localX = gridZ; localZ = 2 - gridX; }
         }
 
-        // Если это внутренности или центральный столб
+        // Если это внутренности мультиблока
         if (localX == 1 && localZ == 1) {
             return FurnacePart.CENTER;
         }
 
-        // ПЕРЕДНЯЯ ЛИНИЯ (Ближе всего к лицу печи)
+        // ПЕРЕДНЯЯ ПАНЕЛЬ (Лицо печи)
         if (localZ == 0) {
-            if (localX == 0) return FurnacePart.FRONT_RIGHT;  // Было FRONT_LEFT
-            if (localX == 2) return FurnacePart.FRONT_LEFT;   // Было FRONT_RIGHT
+            if (localX == 0) return FurnacePart.FRONT_LEFT;
+            if (localX == 2) return FurnacePart.FRONT_RIGHT;
             return FurnacePart.FRONT_MID;
         } 
-        // ЗАДНЯЯ ЛИНИЯ (Противоположная сторона)
+        // ЗАДНЯЯ ПАНЕЛЬ
         else if (localZ == 2) {
-            if (localX == 0) return FurnacePart.BACK_LEFT;    // Было BACK_RIGHT
-            if (localX == 2) return FurnacePart.BACK_RIGHT;   // Было BACK_LEFT
+            if (localX == 0) return FurnacePart.BACK_LEFT;
+            if (localX == 2) return FurnacePart.BACK_RIGHT;
             return FurnacePart.BACK_MID;
         } 
-        // БОКОВЫЕ СТЕНЫ (Середина по оси Z)
+        // БОКОВИНЫ (Вот тут они часто ломались или возвращали CENTER)
         else {
-            if (localX == 0) return FurnacePart.MID_RIGHT;    // Было MID_LEFT
-            if (localX == 2) return FurnacePart.MID_LEFT;     // Было MID_RIGHT
+            if (localX == 0) return FurnacePart.MID_CENTER_LEFT;  // Левая стена
+            if (localX == 2) return FurnacePart.MID_CENTER_RIGHT; // Правая стена
             return FurnacePart.CENTER;
         }
     }
