@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "minecraft:block/furnace_north" },
+    "facing=south": { "model": "minecraft:block/furnace_south" },
+    "facing=west": { "model": "minecraft:block/furnace_west" },
+    "facing=east": { "model": "minecraft:block/furnace_east" }
+  }
+}

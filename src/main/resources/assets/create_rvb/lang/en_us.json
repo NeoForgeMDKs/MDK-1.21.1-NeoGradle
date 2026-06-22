@@ -1,0 +1,13 @@
+{
+  "itemGroup.CreateRebuildVanillaBlocks": "Example Mod Tab",
+  "block.CreateRebuildVanillaBlocks.example_block": "Example Block",
+  "item.CreateRebuildVanillaBlocks.example_item": "Example Item",
+
+  "CreateRebuildVanillaBlocks.configuration.title": "Example Mod Configs",
+  "CreateRebuildVanillaBlocks.configuration.section.CreateRebuildVanillaBlocks.common.toml": "Example Mod Configs",
+  "CreateRebuildVanillaBlocks.configuration.section.CreateRebuildVanillaBlocks.common.toml.title": "Example Mod Configs",
+  "CreateRebuildVanillaBlocks.configuration.items": "Item List",
+  "CreateRebuildVanillaBlocks.configuration.logDirtBlock": "Log Dirt Block",
+  "CreateRebuildVanillaBlocks.configuration.magicNumberIntroduction": "Magic Number Text",
+  "CreateRebuildVanillaBlocks.configuration.magicNumber": "Magic Number"
+}
