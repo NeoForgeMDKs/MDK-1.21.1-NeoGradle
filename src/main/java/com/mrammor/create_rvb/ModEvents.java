@@ -4,15 +4,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.FurnaceBlock;
-import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @EventBusSubscriber(modid = CreateRebuildVanillaBlocks.MODID)
@@ -25,47 +24,32 @@ public class ModEvents {
             BlockState state = event.getPlacedBlock();
 
             if (state.is(Blocks.FURNACE)) {
+                // Рассчитываем структуру мультиблока при установке новой печи
                 Set<BlockPos> connected = calculateTankStructure(level, pos);
-
-                for (BlockPos p : connected) {
-                    if (level.getBlockEntity(p) instanceof FurnaceBlockEntity furnaceEntity) {
-                        BlockState blockState = level.getBlockState(p);
-                        Direction facing = blockState.hasProperty(FurnaceBlock.FACING) 
-                                ? blockState.getValue(FurnaceBlock.FACING) 
-                                : Direction.NORTH;
-                    }
-                }
+                
+                // В будущем здесь можно уведомлять Мастер-блок о том, что структура изменилась:
+                // updateMasterBlockEntity(level, connected);
             }
         }
     }
 
-    // Правильный метод клика (ОСТАЛСЯ ТОЛЬКО ОН)
-    @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        var level = event.getLevel();
-        var pos = event.getPos();
-        var itemInHand = event.getItemStack();
-        var player = event.getEntity();
+    // Безопасный не-рекурсивный метод сканирования горизонтального слоя печей
+    private static void scanHorizontalLayer(Level level, BlockPos startPos, Set<BlockPos> layer) {
+        List<BlockPos> queue = new ArrayList<>();
+        queue.add(startPos);
+        layer.add(startPos);
 
-        if (level.getBlockState(pos).is(Blocks.FURNACE)) {
-            if (itemInHand.is(Blocks.FURNACE.asItem())) {
-                if (!player.isShiftKeyDown()) {
-                    event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
-                    event.setCanceled(true);
+        int index = 0;
+        while (index < queue.size()) {
+            BlockPos current = queue.get(index++);
+            if (layer.size() > 9) return; // Ограничение на размер слоя (макс 3х3 = 9 блоков)
+
+            for (Direction dir : Direction.Plane.HORIZONTAL) {
+                BlockPos next = current.relative(dir);
+                if (!layer.contains(next) && level.getBlockState(next).is(Blocks.FURNACE)) {
+                    layer.add(next);
+                    queue.add(next);
                 }
-            }
-        }
-    }
-
-    private static void scanHorizontalLayer(Level level, BlockPos pos, Set<BlockPos> layer) {
-        if (layer.size() > 9) return;
-        layer.add(pos);
-        
-        Direction[] horizontals = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-        for (Direction dir : horizontals) {
-            BlockPos next = pos.relative(dir);
-            if (!layer.contains(next) && level.getBlockState(next).is(Blocks.FURNACE)) {
-                scanHorizontalLayer(level, next, layer);
             }
         }
     }
