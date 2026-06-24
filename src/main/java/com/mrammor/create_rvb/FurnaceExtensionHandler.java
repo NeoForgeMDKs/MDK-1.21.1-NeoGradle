@@ -17,7 +17,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-@EventBusSubscriber(modid = CreateRebuildVanillaBlocks.MODID, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = CreateRebuildVanillaBlocks.MODID)
 public class FurnaceExtensionHandler {
 
     @SubscribeEvent

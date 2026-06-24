@@ -11,6 +11,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import com.mrammor.create_rvb.content.modular_furnace.ModularFurnaceBlockEntity;
+import com.mrammor.create_rvb.registry.ModBlockEntityTypes;
 
 public class CustomModularFurnaceBlock extends FurnaceBlock {
 
