@@ -33,7 +33,7 @@ displayName="${mod_name}" #mandatory
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 
 # A URL for the "homepage" for this mod, displayed in the mod UI
-#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+displayURL="https://github.com/RavenholmZombie/MSWSM" #optional
 
 # A file name (in the root of the mod JAR) containing a logo for display
 #logoFile="examplemod.png" #optional
@@ -42,11 +42,11 @@ displayName="${mod_name}" #mandatory
 #credits="" #optional
 
 # The authors of the mod, displayed in the mod UI (optional)
-#authors=""
+authors="RavenholmZombie"
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-A stupidly simple client-only mod that displays a Motion Sickness and Eplipsy Warning GUI.
+A stupidly simple client-only mod that displays a Motion Sickness and Epilepsy Warning GUI when joining a world/server.
 '''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
