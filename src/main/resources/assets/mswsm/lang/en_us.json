@@ -1,0 +1,7 @@
+{
+  "screen.mswsm.warning.title": "Health & Safety Warning",
+  "screen.mswsm.warning.body": "This modpack/server may contain flashing lights, rapid camera movement, visual effects, moving rides, or other content that may trigger motion sickness, dizziness, discomfort, or photosensitive seizures in some players.",
+  "screen.mswsm.warning.stop": "Please stop playing immediately if you feel unwell.",
+  "screen.mswsm.warning.accept": "I understand",
+  "screen.mswsm.warning.checkbox": "Don't show this warning again."
+}
