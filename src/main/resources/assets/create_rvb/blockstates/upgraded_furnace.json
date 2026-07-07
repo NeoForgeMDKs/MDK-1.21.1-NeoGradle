@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "create_rvb:block/upgraded_furnace" }
+  }
+}

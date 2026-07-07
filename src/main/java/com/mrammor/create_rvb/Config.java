@@ -1,4 +1,4 @@
-package com.example.examplemod;
+package com.mrammor.create_rvb;
 
 import java.util.List;
 import java.util.Set;
