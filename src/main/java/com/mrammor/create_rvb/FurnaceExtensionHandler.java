@@ -1,5 +1,6 @@
 package com.mrammor.create_rvb;
 
+import com.mrammor.create_rvb.content.modular_furnace.ModularFurnaceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -57,6 +58,12 @@ public class FurnaceExtensionHandler {
         // Защита от превышения лимита бака по высоте (7 блоков)
         if (currentHeight >= 7) return;
 
+        // Находим мастера кликнутого блока, чтобы не заходить на чужую территорию
+        BlockPos clickedMaster = null;
+        if (level.getBlockEntity(clickedPos) instanceof ModularFurnaceBlockEntity clickedBE) {
+            clickedMaster = clickedBE.getMasterPos();
+        }
+
         // 4. Сканируем весь горизонтальный слой на этой максимальной высоте (поиск платформы печей)
         List<BlockPos> currentLayer = new ArrayList<>();
         List<BlockPos> queue = new ArrayList<>();
@@ -64,7 +71,7 @@ public class FurnaceExtensionHandler {
         queue.add(highestImmutable);
         currentLayer.add(highestImmutable);
 
-        // Простой алгоритм поиска соединенных блоков печи на одном Y-уровне
+        // Алгоритм поиска соединенных блоков печи на одном Y-уровне с проверкой мастера
         int index = 0;
         while (index < queue.size()) {
             BlockPos current = queue.get(index++);
@@ -73,6 +80,16 @@ public class FurnaceExtensionHandler {
                 // Проверяем, что сосед — это печь, мы его еще не проверяли и расстояние в пределах структуры (макс 3х3)
                 if (level.getBlockState(neighbor).is(Blocks.FURNACE) && !currentLayer.contains(neighbor)) {
                     if (Math.abs(neighbor.getX() - highestImmutable.getX()) < 3 && Math.abs(neighbor.getZ() - highestImmutable.getZ()) < 3) {
+                        
+                        // ПРОВЕРКА НА ЧУЖОЙ МАСТЕР:
+                        if (level.getBlockEntity(neighbor) instanceof ModularFurnaceBlockEntity neighborBE) {
+                            BlockPos neighborMaster = neighborBE.getMasterPos();
+                            // Если у соседа есть мастер, и он отличается от нашего — это чужая печь стоит впритык! Игнорируем её.
+                            if (clickedMaster != null && neighborMaster != null && !clickedMaster.equals(neighborMaster)) {
+                                continue; 
+                            }
+                        }
+
                         currentLayer.add(neighbor);
                         queue.add(neighbor);
                     }

@@ -1,18 +1,18 @@
 package com.mrammor.create_rvb;
 
+import com.mrammor.create_rvb.content.modular_furnace.ModularFurnaceBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.FurnaceBlock;
-import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 @EventBusSubscriber(modid = CreateRebuildVanillaBlocks.MODID)
@@ -25,101 +25,144 @@ public class ModEvents {
             BlockState state = event.getPlacedBlock();
 
             if (state.is(Blocks.FURNACE)) {
-                Set<BlockPos> connected = calculateTankStructure(level, pos);
-
-                for (BlockPos p : connected) {
-                    if (level.getBlockEntity(p) instanceof FurnaceBlockEntity furnaceEntity) {
-                        BlockState blockState = level.getBlockState(p);
-                        Direction facing = blockState.hasProperty(FurnaceBlock.FACING) 
-                                ? blockState.getValue(FurnaceBlock.FACING) 
-                                : Direction.NORTH;
-                    }
-                }
+                // Пересчитываем структуру от поставленного блока
+                updateStructure(level, pos);
             }
         }
     }
 
-    // Правильный метод клика (ОСТАЛСЯ ТОЛЬКО ОН)
     @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
-        var level = event.getLevel();
-        var pos = event.getPos();
-        var itemInHand = event.getItemStack();
-        var player = event.getEntity();
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (event.getLevel() instanceof Level level && !level.isClientSide()) {
+            BlockPos pos = event.getPos();
+            BlockState state = event.getState();
 
-        if (level.getBlockState(pos).is(Blocks.FURNACE)) {
-            if (itemInHand.is(Blocks.FURNACE.asItem())) {
-                if (!player.isShiftKeyDown()) {
-                    event.setCancellationResult(net.minecraft.world.InteractionResult.SUCCESS);
-                    event.setCanceled(true);
+            if (state.is(Blocks.FURNACE)) {
+                // Нам нужно проверить соседей сломанного блока ПОСЛЕ того, как он исчезнет.
+                // Запускаем проверку в конце текущего игрового тика
+                level.getServer().tell(new net.minecraft.server.TickTask(0, () -> {
+                    for (Direction dir : Direction.values()) {
+                        BlockPos neighborPos = pos.relative(dir);
+                        if (level.getBlockState(neighborPos).is(Blocks.FURNACE)) {
+                            updateStructure(level, neighborPos);
+                            // Достаточно обновить одну выжившую часть, BFS сам найдет всю остальную группу
+                            break; 
+                        }
+                    }
+                }));
+            }
+        }
+    }
+
+    /**
+     * Основной метод управления структурой: находит блоки, валидирует форму и раздает/сбрасывает Мастера.
+     */
+    private static void updateStructure(Level level, BlockPos startPos) {
+        // 1. Ищем все соединенные печи с помощью алгоритма BFS
+        Set<BlockPos> connectedBlocks = findConnectedFurnaces(level, startPos);
+
+        // 2. Проверяем геометрию по формуле объема идеальной коробки
+        if (validatePerfectBoxShape(connectedBlocks)) {
+            // Форма идеальна! Находим главного Мастера структуры (минимальный угол)
+            BlockPos masterPos = findMasterPosition(connectedBlocks);
+
+            for (BlockPos p : connectedBlocks) {
+                if (level.getBlockEntity(p) instanceof ModularFurnaceBlockEntity furnaceBE) {
+                    furnaceBE.setMaster(masterPos);
+                    // Шлем пакет клиенту, чтобы обновился рендеринг текстур Create
+                    level.sendBlockUpdated(p, level.getBlockState(p), level.getBlockState(p), 3);
+                }
+            }
+        } else {
+            // Форма нарушена (дыры, выступы буквы Г или Т). Распускаем структуру.
+            // Каждый блок забывает Мастера и начинает считать мастером самого себя.
+            for (BlockPos p : connectedBlocks) {
+                if (level.getBlockEntity(p) instanceof ModularFurnaceBlockEntity furnaceBE) {
+                    furnaceBE.setMaster(null);
+                    level.sendBlockUpdated(p, level.getBlockState(p), level.getBlockState(p), 3);
                 }
             }
         }
     }
 
-    private static void scanHorizontalLayer(Level level, BlockPos pos, Set<BlockPos> layer) {
-        if (layer.size() > 9) return;
-        layer.add(pos);
-        
-        Direction[] horizontals = {Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-        for (Direction dir : horizontals) {
-            BlockPos next = pos.relative(dir);
-            if (!layer.contains(next) && level.getBlockState(next).is(Blocks.FURNACE)) {
-                scanHorizontalLayer(level, next, layer);
+    /**
+     * Алгоритм BFS (Поиск в ширину) для сбора всех соприкасающихся блоков печей.
+     */
+    private static Set<BlockPos> findConnectedFurnaces(Level level, BlockPos start) {
+        Set<BlockPos> visited = new HashSet<>();
+        Queue<BlockPos> queue = new LinkedList<>();
+
+        queue.add(start);
+        visited.add(start);
+
+        while (!queue.isEmpty()) {
+            BlockPos current = queue.poll();
+
+            for (Direction dir : Direction.values()) {
+                BlockPos neighbor = current.relative(dir);
+                if (!visited.contains(neighbor) && level.getBlockState(neighbor).is(Blocks.FURNACE)) {
+                    visited.add(neighbor);
+                    queue.add(neighbor);
+                }
             }
         }
+        return visited;
     }
 
-    private static boolean validateLayerLimits(Set<BlockPos> layer) {
-        if (layer.isEmpty() || layer.size() > 9) return false;
-        
+    /**
+     * ВАЛИДАЦИЯ ПО ФОРМУЛЕ: Сравнение фактического кол-ва блоков с математическим объемом коробки.
+     */
+    private static boolean validatePerfectBoxShape(Set<BlockPos> blocks) {
+        if (blocks == null || blocks.isEmpty()) return false;
+
         int minX = Integer.MAX_VALUE, maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
         int minZ = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE;
-        
-        for (BlockPos p : layer) {
-            if (p.getX() < minX) minX = p.getX();
-            if (p.getX() > maxX) maxX = p.getX();
-            if (p.getZ() < minZ) minZ = p.getZ();
-            if (p.getZ() > maxZ) maxZ = p.getZ();
+
+        // Находим крайние точки границ
+        for (BlockPos pos : blocks) {
+            if (pos.getX() < minX) minX = pos.getX();
+            if (pos.getX() > maxX) maxX = pos.getX();
+            
+            if (pos.getY() < minY) minY = pos.getY();
+            if (pos.getY() > maxY) maxY = pos.getY();
+            
+            if (pos.getZ() < minZ) minZ = pos.getZ();
+            if (pos.getZ() > maxZ) maxZ = pos.getZ();
         }
-        
-        return (maxX - minX < 3) && (maxZ - minZ < 3);
+
+        // Вычисляем стороны параллелепипеда
+        int width = (maxX - minX) + 1;
+        int height = (maxY - minY) + 1;
+        int length = (maxZ - minZ) + 1;
+
+        // Лимиты размеров (например, макс. размер танка 3х3х7, как было заложено в ваших лимитах слоев)
+        if (width > 3 || length > 3 || height > 7) return false;
+
+        // Считаем математический объем коробки
+        int calculatedVolume = width * height * length;
+
+        // Если фактическое число блоков совпадает с объемом — в структуре нет дыр и лишних хвостов!
+        return blocks.size() == calculatedVolume;
     }
 
-    private static boolean isLayerMatchingPattern(Set<BlockPos> baseLayer, Set<BlockPos> currentLayer, int yOffset) {
-        if (baseLayer.size() != currentLayer.size()) return false;
-        for (BlockPos basePos : baseLayer) {
-            if (!currentLayer.contains(basePos.above(yOffset))) {
-                return false;
+    /**
+     * Детерминированный поиск позиции Мастера (самый нижний северо-западный угол структуры).
+     */
+    private static BlockPos findMasterPosition(Set<BlockPos> blocks) {
+        BlockPos master = null;
+        for (BlockPos pos : blocks) {
+            if (master == null) {
+                master = pos;
+                continue;
+            }
+            // Сортировка: приоритет по самой нижней высоте (Y), затем север (Z), затем запад (X)
+            if (pos.getY() < master.getY() ||
+               (pos.getY() == master.getY() && pos.getZ() < master.getZ()) ||
+               (pos.getY() == master.getY() && pos.getZ() == master.getZ() && pos.getX() < master.getX())) {
+                master = pos;
             }
         }
-        return true;
-    }
-
-    private static Set<BlockPos> calculateTankStructure(Level level, BlockPos start) {
-        BlockPos bottomPos = start;
-        while (level.getBlockState(bottomPos.below()).is(Blocks.FURNACE)) {
-            bottomPos = bottomPos.below();
-        }
-        
-        Set<BlockPos> baseLayer = new HashSet<>();
-        scanHorizontalLayer(level, bottomPos, baseLayer);
-        
-        Set<BlockPos> total = new HashSet<>();
-        if (!validateLayerLimits(baseLayer)) {
-            total.add(start);
-            return total;
-        }
-
-        for (int y = 0; y < 7; y++) {
-            Set<BlockPos> currentLayer = new HashSet<>();
-            scanHorizontalLayer(level, bottomPos.above(y), currentLayer);
-            if (isLayerMatchingPattern(baseLayer, currentLayer, y)) {
-                total.addAll(currentLayer);
-            } else {
-                break;
-            }
-        }
-        return total;
+        return master;
     }
 }
