@@ -1,5 +1,6 @@
 package com.rz.mswsm.mixin;
 
+import com.rz.mswsm.Config;
 import com.rz.mswsm.diagnostic.GenerationRefTracker;
 import com.rz.mswsm.diagnostic.ShutdownTracker;
 import net.minecraft.server.level.ChunkHolder;
@@ -18,19 +19,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Mixin(ChunkMap.class)
 public abstract class ChunkMapDiagnosticMixin {
 
-    private static final Logger LOGGER =
-            LogManager.getLogger("MSWSM-ChunkDiagnostic");
-
-    private static final ConcurrentHashMap<Long, AtomicInteger>
-            UNLOAD_COUNTS = new ConcurrentHashMap<>();
-
-    /*
-     * We only need histories for a handful of representative stuck
-     * chunks. All 329 showed the same fundamental failure last run.
-     */
-    private static final AtomicInteger HISTORY_DUMPS =
-            new AtomicInteger();
-
+    private static final Logger LOGGER = LogManager.getLogger("MSWSM-ChunkDiagnostic");
+    private static final ConcurrentHashMap<Long, AtomicInteger> UNLOAD_COUNTS = new ConcurrentHashMap<>();
+    private static final AtomicInteger HISTORY_DUMPS = new AtomicInteger();
     private static final int MAX_HISTORY_DUMPS = 20;
 
     @Inject(
@@ -42,16 +33,12 @@ public abstract class ChunkMapDiagnosticMixin {
             ChunkHolder holder,
             CallbackInfo ci
     ) {
-        if (!ShutdownTracker.isShuttingDown())
-        {
+        if (!Config.chunkDiagnosticsEnabled() || !ShutdownTracker.isShuttingDown()) {
             return;
         }
 
         int count = UNLOAD_COUNTS
-                .computeIfAbsent(
-                        packedChunkPos,
-                        ignored -> new AtomicInteger()
-                )
+                .computeIfAbsent(packedChunkPos, ignored -> new AtomicInteger())
                 .incrementAndGet();
 
         if (count == 10
@@ -60,8 +47,7 @@ public abstract class ChunkMapDiagnosticMixin {
                 || count == 10000
                 || count == 100000) {
 
-            ChunkPos pos =
-                    new ChunkPos(packedChunkPos);
+            ChunkPos pos = new ChunkPos(packedChunkPos);
 
             LOGGER.error(
                     """
@@ -89,30 +75,24 @@ public abstract class ChunkMapDiagnosticMixin {
             );
         }
 
-        /*
-         * At attempt 1000, dump the generation-ref history for
-         * only the first few pathological chunks.
-         */
         if (count == 1000
                 && holder.getGenerationRefCount() > 0
                 && !GenerationRefTracker.describe(packedChunkPos)
                 .startsWith("(No generation-reference")
-                && HISTORY_DUMPS.getAndIncrement()
-                < MAX_HISTORY_DUMPS) {
+                && HISTORY_DUMPS.getAndIncrement() < MAX_HISTORY_DUMPS) {
 
-            ChunkPos pos =
-                    new ChunkPos(packedChunkPos);
+            ChunkPos pos = new ChunkPos(packedChunkPos);
 
             LOGGER.error(
                     """
-                    
+
                     ==================================================
                     [CARNIVAL GENERATION REF HISTORY]
                     STUCK CHUNK x={}, z={}
                     currentGenerationRefCount={}
                     readyForSaving={}
                     saveSyncDone={}
-                    
+
                     {}
                     ==================================================
                     """,
@@ -121,9 +101,7 @@ public abstract class ChunkMapDiagnosticMixin {
                     holder.getGenerationRefCount(),
                     holder.isReadyForSaving(),
                     holder.getSaveSyncFuture().isDone(),
-                    GenerationRefTracker.describe(
-                            packedChunkPos
-                    )
+                    GenerationRefTracker.describe(packedChunkPos)
             );
         }
     }
