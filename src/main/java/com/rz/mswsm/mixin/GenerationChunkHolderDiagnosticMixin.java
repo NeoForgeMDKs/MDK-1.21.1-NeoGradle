@@ -1,5 +1,6 @@
 package com.rz.mswsm.mixin;
 
+import com.rz.mswsm.Config;
 import com.rz.mswsm.diagnostic.GenerationRefTracker;
 import net.minecraft.server.level.GenerationChunkHolder;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,30 +18,23 @@ public abstract class GenerationChunkHolderDiagnosticMixin {
     @Unique
     private int mswsm$refCountBeforeDecrease;
 
-    @Inject(
-            method = "increaseGenerationRefCount",
-            at = @At("HEAD")
-    )
-    private void mswsm$beforeIncreaseGenerationRefCount(
-            CallbackInfo ci
-    ) {
-        GenerationChunkHolder self =
-                (GenerationChunkHolder) (Object) this;
+    @Inject(method = "increaseGenerationRefCount", at = @At("HEAD"))
+    private void mswsm$beforeIncreaseGenerationRefCount(CallbackInfo ci) {
+        if (!Config.chunkDiagnosticsEnabled()) {
+            return;
+        }
 
-        mswsm$refCountBeforeIncrease =
-                self.getGenerationRefCount();
+        GenerationChunkHolder self = (GenerationChunkHolder) (Object) this;
+        mswsm$refCountBeforeIncrease = self.getGenerationRefCount();
     }
 
-    @Inject(
-            method = "increaseGenerationRefCount",
-            at = @At("RETURN")
-    )
-    private void mswsm$afterIncreaseGenerationRefCount(
-            CallbackInfo ci
-    ) {
-        GenerationChunkHolder self =
-                (GenerationChunkHolder) (Object) this;
+    @Inject(method = "increaseGenerationRefCount", at = @At("RETURN"))
+    private void mswsm$afterIncreaseGenerationRefCount(CallbackInfo ci) {
+        if (!Config.chunkDiagnosticsEnabled()) {
+            return;
+        }
 
+        GenerationChunkHolder self = (GenerationChunkHolder) (Object) this;
         GenerationRefTracker.recordIncrease(
                 self,
                 mswsm$refCountBeforeIncrease,
@@ -48,30 +42,23 @@ public abstract class GenerationChunkHolderDiagnosticMixin {
         );
     }
 
-    @Inject(
-            method = "decreaseGenerationRefCount",
-            at = @At("HEAD")
-    )
-    private void mswsm$beforeDecreaseGenerationRefCount(
-            CallbackInfo ci
-    ) {
-        GenerationChunkHolder self =
-                (GenerationChunkHolder) (Object) this;
+    @Inject(method = "decreaseGenerationRefCount", at = @At("HEAD"))
+    private void mswsm$beforeDecreaseGenerationRefCount(CallbackInfo ci) {
+        if (!Config.chunkDiagnosticsEnabled()) {
+            return;
+        }
 
-        mswsm$refCountBeforeDecrease =
-                self.getGenerationRefCount();
+        GenerationChunkHolder self = (GenerationChunkHolder) (Object) this;
+        mswsm$refCountBeforeDecrease = self.getGenerationRefCount();
     }
 
-    @Inject(
-            method = "decreaseGenerationRefCount",
-            at = @At("RETURN")
-    )
-    private void mswsm$afterDecreaseGenerationRefCount(
-            CallbackInfo ci
-    ) {
-        GenerationChunkHolder self =
-                (GenerationChunkHolder) (Object) this;
+    @Inject(method = "decreaseGenerationRefCount", at = @At("RETURN"))
+    private void mswsm$afterDecreaseGenerationRefCount(CallbackInfo ci) {
+        if (!Config.chunkDiagnosticsEnabled()) {
+            return;
+        }
 
+        GenerationChunkHolder self = (GenerationChunkHolder) (Object) this;
         GenerationRefTracker.recordDecrease(
                 self,
                 mswsm$refCountBeforeDecrease,
