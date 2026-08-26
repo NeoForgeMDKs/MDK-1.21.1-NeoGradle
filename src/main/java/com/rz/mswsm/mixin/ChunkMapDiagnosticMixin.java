@@ -1,4 +1,4 @@
-package com.rz.mixin;
+package com.rz.mswsm.mixin;
 
 import com.rz.mswsm.Main;
 import net.minecraft.server.level.ChunkHolder;
